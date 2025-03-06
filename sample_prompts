@@ -1,29 +1,23 @@
 custom_prompt = (
     "You are a global expert in regulatory transaction reporting. Your task is to extract detailed information "
-    "from any public regulatory document (PDF, Word, CSV, etc.) and output a structured graph with clearly labeled nodes and edges. \n\n"
+    "from any public regulatory document (PDF, Word, CSV, etc.) and output a structured graph with clearly labeled nodes and edges.\n\n"
     
     "Extract the following nodes with their attributes:\n"
     "  1. Regulatory Authority:\n"
-    "       - The issuing body (e.g., CFTC, ESMA, IOSCO, CPMI, etc.).\n\n"
-    
+    "       - The issuing body (e.g., CFTC, ESMA, IOSCO, CPMI, etc.).\n"
     "  2. Regulatory Document:\n"
-    "       - Title, unique ID, version, and publication date.\n\n"
-    
+    "       - Title, unique ID, version, and publication date.\n"
     "  3. Regulatory Mandate/Directive:\n"
-    "       - The specific rules, guidelines, or obligations (e.g., reporting requirements, life cycle event guidance).\n\n"
-    
+    "       - The specific rules, guidelines, or obligations (e.g., reporting requirements, lifecycle event guidance).\n"
     "  4. Reporting Entity (Financial Institution):\n"
-    "       - The firms or institutions required to comply with the mandate.\n\n"
-    
+    "       - The firms or institutions required to comply with the mandate.\n"
     "  5. Derivative Product (if applicable):\n"
-    "       - The financial instruments or derivatives referenced in the document.\n\n"
-    
+    "       - The financial instruments or derivatives referenced in the document.\n"
     "  6. Reporting Obligation:\n"
-    "       - The requirement to report transactions or data, including timing and process instructions.\n\n"
-    
+    "       - The requirement to report transactions or data, including timing and process instructions.\n"
     "  7. Field Specification & Data Elements:\n"
-    "       - Each individual data field required for reporting (e.g., 'Notional Amount', 'Transaction Date', 'Price', 'Quantity', etc.).\n\n"
-    
+    "       - Each individual data field required for reporting (e.g., 'Notional Amount', 'Transaction Date', 'Price', 'Quantity', etc.).\n"
+    "         *Each field must be extracted as its own node.*\n"
     "  8. Compliance Detail:\n"
     "       - Additional guidance, validation rules, exceptions, technical instructions, and any other relevant notes.\n\n"
     
@@ -34,30 +28,32 @@ custom_prompt = (
     "  - 'requires': Regulatory Mandate requires Reporting Obligation, Field Specifications, or Compliance Detail.\n"
     "  - 'specifies': Regulatory Mandate or Document specifies Field Specifications & Data Elements.\n"
     "  - 'defines': Regulatory Document defines the structure or format of data elements.\n"
-    "  - 'addresses': Regulatory Document addresses Compliance Details such as validation or life cycle rules.\n"
+    "  - 'addresses': Regulatory Document addresses Compliance Details (such as validation rules or lifecycle guidance).\n"
     "  - 'applies to': Regulatory Mandate applies to specific Reporting Entities or Derivative Products.\n"
     "  - 'reports on': Reporting Obligation reports on Field Specifications.\n"
     "  - 'references': Regulatory Document may reference other documents or standards.\n"
-    "  - 'modifies': A newer Regulatory Mandate modifies or supersedes an earlier mandate (if applicable).\n\n"
+    "  - 'modifies': A newer Regulatory Mandate modifies or supersedes an earlier mandate (if applicable).\n"
+    "  - For related data elements (e.g., 'Notional Amount' and 'Notional Amount Currency'), establish a relationship such as 'is expressed in' or 'has unit' to connect the numeric field to its corresponding unit.\n\n"
     
-    "For example, if a document states: \n"
-    "  'The CFTC mandates that firms report all OTC derivatives transactions, including detailed data fields such as "
-    "Notional Amount, Transaction Date, Price, and Quantity, as outlined in CFTC Guidance V2.0,' \n"
+    "For example, if a document states:\n"
+    "  'The CFTC mandates that firms report all OTC derivatives transactions, including detailed data fields such as Notional Amount, "
+    "Transaction Date, Price, and Quantity, as outlined in CFTC Guidance V2.0,'\n"
     "then you should:\n"
     "  - Create a node for 'CFTC' (Regulatory Authority).\n"
     "  - Create a node for 'CFTC Guidance V2.0' (Regulatory Document with version and date).\n"
     "  - Create a node for 'OTC Derivatives Reporting Mandate' (Regulatory Mandate/Directive).\n"
-    "  - Create individual nodes for each field: 'Notional Amount', 'Transaction Date', 'Price', 'Quantity' (Field Specifications).\n"
+    "  - Create individual nodes for each field: 'Notional Amount', 'Transaction Date', 'Price', and 'Quantity' (Field Specifications).\n"
+    "  - If the document includes a separate element for 'Notional Amount Currency', create a node for it and link it to the 'Notional Amount' node with the relationship 'is expressed in'.\n"
     "  - Create a node for 'Firms' (Reporting Entity).\n"
-    "  - Link them with edges such as:\n"
+    "  - Establish relationships such as:\n"
     "         • 'CFTC issues CFTC Guidance V2.0'\n"
     "         • 'CFTC Guidance V2.0 contains OTC Derivatives Reporting Mandate'\n"
     "         • 'OTC Derivatives Reporting Mandate requires reporting by Firms'\n"
-    "         • 'OTC Derivatives Reporting Mandate specifies Notional Amount', etc.\n\n"
+    "         • 'OTC Derivatives Reporting Mandate specifies Notional Amount'\n"
+    "         • 'Notional Amount is expressed in Notional Amount Currency' (if applicable).\n\n"
     
     "Return your output as a structured graph that captures every node and relationship for detailed cross-regime analysis."
 )
-
 
 
 additional_instructions = (
@@ -65,11 +61,10 @@ additional_instructions = (
     "  - 'source_doc': the title of the document from which the information was extracted.\n"
     "  - 'doc_version': the version or publication date of the document.\n"
     "  - 'extraction_date': the current date when the extraction is performed.\n"
-    "  - 'regulatory_regime': a property indicating the specific regulator/mandate (e.g., 'CFTC', 'ESMA', 'MiFID', etc.) "
-    "or 'Global' if the document applies universally.\n"
-    "  - 'page_numbers': for Document nodes, include the page number(s) where the extracted information appears.\n\n"
-    "For nodes representing individual field specifications (e.g., 'Notional Amount', 'Transaction Date', etc.), add an extra label 'DataField'.\n\n"
-    "If a document is applicable to multiple regulators, include a comma-separated list in the 'regulatory_regime' property.\n\n"
-    "Ensure these metadata properties are added to every node so that later queries (e.g., comparing rules on the 'Notional Amount' field across all mandates) "
-    "can accurately filter and compare nodes by source, version, regulatory regime, and even the specific pages of the document."
+    "  - 'regulatory_regime': the specific regulator/mandate (e.g., 'CFTC', 'ESMA', 'MiFID', etc.) or 'Global' if applicable.\n"
+    "  - 'page_numbers': for Document nodes, include the page number(s) where the information appears.\n"
+    "  - 'namespace': set this to 'GTRS-Regulatory-Docs' for all nodes in this collection.\n\n"
+    "For nodes representing individual field specifications (e.g., 'Notional Amount', 'Transaction Date'), add an extra label 'DataField'.\n\n"
+    "If a document applies to multiple regulators, include a comma-separated list in 'regulatory_regime'.\n\n"
+    "Ensure these metadata properties are added to every node so you can filter or purge the collection easily using the namespace."
 )
